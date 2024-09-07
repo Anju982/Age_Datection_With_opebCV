@@ -50,3 +50,7 @@ class MainApp:
         result = self.display_result(image, faces)
         
         return result
+    
+    def release(self):
+        self.cap.release()
+        cv2.destroyAllWindows()
