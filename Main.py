@@ -2,9 +2,9 @@ import cv2
 import AgeDetector
 
 class MainApp:
-    def __init__(self):
+    def __init__(self, video_source=0):
         self.age_detector = AgeDetector.AgeDetector()
-        self.cap = cv2.VideoCapture(1)
+        self.cap = cv2.VideoCapture(video_source)
         
         
     def display_result(self, frame, faces):
@@ -51,7 +51,7 @@ class MainApp:
         cv2.destroyAllWindows()
         
 if __name__ == "__main__":
-    app = MainApp()
+    app = MainApp(video_source=0) # Need to change Video source 
     app.run()
 
     
