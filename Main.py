@@ -55,7 +55,7 @@ class MainApp:
         cv2.destroyAllWindows()
         
 if __name__ == "__main__":
-    app = MainApp(video_source=0) # Need to change Video source 
+    app = MainApp(video_source=1) # Need to change Video source 
     app.run()
 
     

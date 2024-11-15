@@ -4,6 +4,7 @@ import numpy as np
 import os
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import img_to_array
+from mtcnn import MTCNN
 
 class AgeDetector:
     def __init__(self):
@@ -39,21 +40,40 @@ class EmotionDetector:
     def __init__(self):
         self.emotion_labels = ['Angry', 'Disgust', 'Fear', 'Happy', 'Sad', 'Surprise', 'Neutral']
         self.emotion_model = self.load_emotion_model()
+        self.face_detector = MTCNN()
     
     def load_emotion_model(self):
         model_path = os.path.join("Model", "emotion_model.h5")
         return load_model(model_path)
     
-    def predict_emotion(self, face_img):
-        # Preprocess the image for emotion detection
-        gray = cv2.cvtColor(face_img, cv2.COLOR_BGR2GRAY)
+    def preprocess_image(self, image):
+        # Detect and align face
+        faces = self.face_detector.detect_faces(image)
+        if len(faces) == 0:
+            return None
+        x, y, w, h = faces[0]['box']
+        face = image[y:y+h, x:x+w]
+        gray = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY)
+        gray = cv2.equalizeHist(gray)
         roi = cv2.resize(gray, (48, 48))
-        roi = roi.astype("float") / 255.0
-        roi = img_to_array(roi)
-        roi = np.expand_dims(roi, axis=0)
+        roi = roi.astype("float32") / 255.0
+        roi = np.expand_dims(np.expand_dims(roi, axis=-1), axis=0)
+        return roi
+    
+    def predict_emotion(self, face_img):
+        """
+        Predict the emotion from a given face image.
+        """
+        # Preprocess the input image
+        roi = self.preprocess_image(face_img)
         
-        # Get emotion prediction
+        if roi is None:
+            return "No face detected"
+        
+        # Get emotion prediction probabilities
         preds = self.emotion_model.predict(roi)[0]
+        
+        # Map prediction to the emotion label
         return self.emotion_labels[np.argmax(preds)]
     
     
